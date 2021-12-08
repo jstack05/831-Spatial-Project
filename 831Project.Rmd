@@ -1,0 +1,59 @@
+---
+title: "Intro"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Description of data set when it's set
+description
+
+#Research Questions
+questions
+
+#Exploration
+```{r}
+library(sf)
+library(spdep)
+library(tigris)
+library(acs)
+library(tidyverse)
+library(tmap)
+library(tidycensus)
+
+api="fd79d3eb4ce2c69f2ca5d2ac69199b3930b798ed"
+api.key.install(key=api)
+acs.tables.install()
+set.seed(1234) # because we are randomizing part of the process
+
+# Access the shapefile
+s <- get_acs(key = api, geography = "tract", variables = "B19013_001",
+             state = c("VA"), geometry = TRUE)
+
+# remove NA values is any
+s <- na.omit(s)
+
+# select column to work with
+s <- subset(s, select=c("estimate"))
+
+# check data skewness
+hist(s$estimate, main=NULL)
+
+# check for outliers
+boxplot(s$estimate, horizontal = TRUE)
+
+# plot variable
+tm_shape(s) + tm_fill(col="estimate", style="quantile", n=5, palette="Greens") +
+  tm_legend(outside=TRUE)
+```
+
+#Model Fitting
+
+#Cross-Validation
+
+#Predictions
+
+#Results
+
