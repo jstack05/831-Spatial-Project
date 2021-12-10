@@ -10,6 +10,7 @@ library(tidycensus)
 "https://www.kaggle.com/stevepalley/2016uspresidentialvotebycounty"
 states <- read.csv("States.csv", header=TRUE)
 cont.states <- read.csv("ContiguousStates.csv", header=TRUE)
+data <- read.csv("pres16results.csv")
 a <- states$Abbreviation
 b <- cont.states$Abbreviation
 
@@ -20,12 +21,15 @@ set.seed(1234) # because we are randomizing part of the process
 
 # Access the shapefile
 s <- get_acs(key = api, geography = "tract", variables = c("B19013_001", "B19083_001E"), 
-             state = b, geometry = TRUE)
+             state = b, geometry = TRUE) %>% tibble()
 # remove NA values is any
 s <- na.omit(s)
 s$NAME
 # select column to work with
-s <- subset(s, select=c("estimate"))
+s2 <- s %>% separate(NAME, c("Tract","county", "State"), sep = "[,]")
+s2 <- full_join(s2, data, by = "county")
+
+s3 <- subset(s, select=c("estimate"))
 # check data skewness
 hist(s$estimate, main=NULL)
 # check for outliers
