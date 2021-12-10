@@ -26,8 +26,10 @@ s <- get_acs(key = api, geography = "tract", variables = c("B19013_001", "B19083
 s <- na.omit(s)
 s$NAME
 # select column to work with
-s2 <- s %>% separate(NAME, c("Tract","county", "State"), sep = "[,]")
-s2 <- full_join(s2, data, by = "county")
+s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
+  separate(County, c(NA, "County"), sep = "[ ]")
+data <- data %>% separate(county, c("County", NA), sep = "[ ]")
+s2 <- inner_join(s2, data, by = "County")
 
 s3 <- subset(s, select=c("estimate"))
 # check data skewness
