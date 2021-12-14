@@ -28,19 +28,23 @@ s <- get_acs(key = api, geography = "tract", variables = c("B19013_001", "B19083
              state = b, geometry = TRUE) %>% tibble()
 # remove NA values is any
 s <- na.omit(s)
-s$NAME
+s
+colnames(s)
+df <- data
+df = df[(df['cand'] == 'Donald Trump') | (df['cand'] == 'Hillary Clinton'),]
+df1= df[(df['cand'] == 'Donald Trump'),]
+colnames(df)
+df <- na.omit(df)
+df1 <-na.omit(df1)
+data <- df1
 # select column to work with
-<<<<<<< HEAD
-s2 <- s %>% separate(NAME, c("Tract","county", "State"), sep = "[,]")
-s2 <- full_join(s2, data, by = "county")
-s2$pct
-=======
+
 s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
   separate(County, c(NA, "County"), sep = "[ ]")
 data <- data %>% separate(county, c("County", NA), sep = "[ ]")
 s2 <- inner_join(s2, data, by = "County")
+s2
 
->>>>>>> 4c0b7f09478cd6cb3b96de6c075371dd3564b61a
 s3 <- subset(s, select=c("estimate"))
 # check data skewness
 hist(s$estimate, main=NULL)
@@ -73,3 +77,24 @@ MC<- moran.mc(s$estimate, lw, nsim=999, alternative="greater")
 MC
 # plot Null distribution
 plot(MC)
+
+#Logistic Model
+#make this example reproducible
+set.seed(1)
+
+#Use 70% of dataset as training set and remaining 30% as testing set
+sample <- sample(c(TRUE, FALSE), nrow(s2), replace=TRUE, prob=c(0.7,0.3))
+train <- s2[sample, ]
+test <- s2[!sample, ]  
+
+#fit logistic regression model
+model <- glm(pct~estimate+moe, family="binomial", data=train)
+
+#disable scientific notation for model summary
+options(scipen=999)
+
+#view model summary
+summary(model)
+
+pscl::pR2(model)["McFadden"]
+install.packages("pscl")
