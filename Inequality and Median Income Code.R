@@ -50,14 +50,14 @@ data
 # select column to work with
 
 s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
-  separate(County, c(NA, "County"), sep = "[ ]")
-data <- data %>% separate(county, c("County", NA), sep = "[ ]")
-s2 <- inner_join(s2, data, by = "County")
+  separate(County, c(NA, "county"), sep = "[ ]")
+data <- data %>% separate(county, c("county", NA), sep = "[ ]")
+s2 <- inner_join(s2, data, by = "county")
 s2
 
 s3 <- subset(s, select=c("estimate"))
-RepPred <- subset(s2, select = c("County", "State", "geometry", "estimate", "moe", "cand", "pct", "st")) %>% 
-  filter(cand == "Donald Trump")
+RepPred <- subset(s2, select = c("county", "State.x", "geometry", "estimate", "moe", "cand", "pct", "st")) %>% 
+  filter(cand == "Donald Trump" & county == "Dallas")
 
 # check data skewness
 hist(s$estimate, main=NULL)
