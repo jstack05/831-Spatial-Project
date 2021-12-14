@@ -11,10 +11,13 @@ library(tidycensus)
 "https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/"
 "https://api.census.gov/data/2016/acs/acs1/variables.html"
 
+#For distress
+"https://www.statsamerica.org/downloads/default.aspx"
 
 states <- read.csv("States.csv", header=TRUE)
 cont.states <- read.csv("ContiguousStates.csv", header=TRUE)
 data <- read.csv("pres16results.csv")
+ue <- read.csv("Unemployment.csv")
 a <- states$Abbreviation
 b <- cont.states$Abbreviation
 
@@ -29,14 +32,21 @@ s <- get_acs(key = api, geography = "tract", variables = c("B19013_001", "B19083
 # remove NA values is any
 s <- na.omit(s)
 s
-colnames(s)
-df <- data
-df = df[(df['cand'] == 'Donald Trump') | (df['cand'] == 'Hillary Clinton'),]
-df1= df[(df['cand'] == 'Donald Trump'),]
-colnames(df)
-df <- na.omit(df)
-df1 <-na.omit(df1)
-data <- df1
+
+#work with unemployment data
+colnames(ue)
+ue <-ue[(ue['Month']==12 & ue['Year']==2016 & ue['Countyfips']!= 0),]
+colnames(ue)[3] <- 'fips'
+
+#work with presidential results data
+data= data[(data['cand'] == 'Donald Trump'),]
+data <- na.omit(data)
+
+#inner join with presidential results
+data$fips <- as.integer(data$fips)
+data <- inner_join(data, ue, by = 'fips')
+data
+
 # select column to work with
 
 s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
@@ -88,7 +98,7 @@ train <- s2[sample, ]
 test <- s2[!sample, ]  
 
 #fit logistic regression model
-model <- glm(pct~estimate+moe, family="binomial", data=train)
+model <- glm(pct~estimate+log(moe) + estimate*log(moe), family="binomial", data=train)
 
 #disable scientific notation for model summary
 options(scipen=999)
@@ -97,4 +107,4 @@ options(scipen=999)
 summary(model)
 
 pscl::pR2(model)["McFadden"]
-install.packages("pscl")
+
