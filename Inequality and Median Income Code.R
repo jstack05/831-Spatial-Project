@@ -28,7 +28,7 @@ s$NAME
 # select column to work with
 s2 <- s %>% separate(NAME, c("Tract","county", "State"), sep = "[,]")
 s2 <- full_join(s2, data, by = "county")
-
+s2$pct
 s3 <- subset(s, select=c("estimate"))
 # check data skewness
 hist(s$estimate, main=NULL)
