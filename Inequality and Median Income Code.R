@@ -37,14 +37,14 @@ s
 colnames(ue)
 ue <-ue[(ue['Month']==12 & ue['Year']==2016 & ue['Countyfips']!= 0),]
 colnames(ue)[3] <- 'fips'
+ue <- ue %>% separate(Description, c("county", "State"), sep = "[,]")
 
 #work with presidential results data
 data= data[(data['cand'] == 'Donald Trump'),]
 data <- na.omit(data)
 
 #inner join with presidential results
-data$fips <- as.integer(data$fips)
-data <- inner_join(data, ue, by = 'fips')
+data <- inner_join(data, ue, by = "county")
 data
 
 # select column to work with
