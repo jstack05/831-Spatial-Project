@@ -5,6 +5,26 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(sf)
+library(spdep)
+library(tigris)
+library(acs)
+library(tidyverse)
+library(tmap)
+library(tidycensus)
+library(yaImpute)
+library(spBayes)
+library(MBA)
+library(fields)
+library(rgdal)
+library(RgoogleMaps)
+library(raster)
+library(coda)
+library(geoR)
+library(leaps)
+library(MASS)
+library(knitr)
+library(plotly) 
 ```
 
 #Description of data set when it's set
@@ -15,13 +35,7 @@ questions
 
 #Exploration
 ```{r}
-library(sf)
-library(spdep)
-library(tigris)
-library(acs)
-library(tidyverse)
-library(tmap)
-library(tidycensus)
+
 
 api="fd79d3eb4ce2c69f2ca5d2ac69199b3930b798ed"
 api.key.install(key=api)
@@ -50,6 +64,42 @@ tm_shape(s) + tm_fill(col="estimate", style="quantile", n=5, palette="Greens") +
 ```
 
 #Model Fitting
+```{r}
+s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
+  separate(County, c(NA, "County"), sep = "[ ]")
+data <- data %>% separate(county, c("County", NA), sep = "[ ]")
+s2 <- inner_join(s2, data, by = "County")
+s3 <- subset(s, select=c("estimate"))
+RepPred <- subset(s2, select = c("County", "State", "geometry", "estimate", "moe", "cand", "pct", "st")) %>% 
+  filter(cand == "Donald Trump")
+
+#Do predictions and model fitting on only republican percentage
+ns = nrow(RepPred)
+coords = RepPred[,3]
+y_list = as.matrix(RepPred[,7])
+x = as.matrix(RepPred[,4:5])
+
+set.seed(1)
+ncoords <- nrow(coords)
+coordsIndx <- sample(1:ns, 0.75*ns)
+coords.train <- coords[coordsIndx, ]
+coords.test <- coords[-coordsIndx, ]
+y.train <- y_list[coordsIndx, ]
+y.test <- y_list[-coordsIndx, ]
+x.train <- x[coordsIndx, ]
+x.test <- x[-coordsIndx, ]
+max.dist =  0.5 * max(iDist(coords)) 
+
+fit.ml <- likfit(coords = coords, data=y_list, trend = ~x, 
+                 ini.cov.pars = c(var(y_list)), 
+                   cov.model = "exponential", lik.method = "ML", 
+                   control = list(factr = 1e-10, maxit = 500)) 
+summary(fit.ml)
+print(fit.ml)
+
+
+
+```
 
 #Cross-Validation
 

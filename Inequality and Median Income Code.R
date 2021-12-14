@@ -41,6 +41,9 @@ data <- data %>% separate(county, c("County", NA), sep = "[ ]")
 s2 <- inner_join(s2, data, by = "County")
 
 s3 <- subset(s, select=c("estimate"))
+RepPred <- subset(s2, select = c("County", "State", "geometry", "estimate", "moe", "cand", "pct", "st")) %>% 
+  filter(cand == "Donald Trump")
+
 # check data skewness
 hist(s$estimate, main=NULL)
 # check for outliers
