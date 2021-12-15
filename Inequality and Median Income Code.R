@@ -33,7 +33,9 @@ s <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B1908
 
 # remove NA values is any
 s <- na.omit(s)
-backups <- s
+backup.s <- s
+backup.s
+x <- backup.s[-seq(2, NROW(backup.s), by = 2),]
 #reshape to wide format
 #remove columns var1 and var3
 s <- subset(s, select = -c(moe, geometry))
@@ -67,10 +69,7 @@ s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
 
 
-s3 <- subset(s, select=c("estimate"))
-RepPred <- subset(s2, select = c("county", "State", "geometry", "estimate", "moe", "cand", "pct")) %>% 
-  filter(cand == "Donald Trump" & county == "Dallas")
-RepPred <- RepPred %>% unique()
+
 
 # check data skewness
 hist(s$estimate, main=NULL)
@@ -81,6 +80,7 @@ tm_shape(s) + tm_fill(col="estimate", style="quantile", n=5, palette="Greens") +
   tm_legend(outside=TRUE)
 
 # define neighbor
+s <- x
 nb <- poly2nb(s, queen=TRUE) # here nb list all ID numbers of neighbors;
 # assign weights to neighbors
 lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
@@ -113,11 +113,7 @@ test <- s2[!sample, ]
 #fit linear model
 model <- lm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=train)
 
-#disable scientific notation for model summary
-#options(scipen=999)
-
 #view model summary
 summary(model)
 
-pscl::pR2(model)["McFadden"]
 
