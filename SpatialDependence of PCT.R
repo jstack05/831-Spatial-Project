@@ -63,3 +63,26 @@ s <- subset(s, select=c("GEOID", "geometry"))
 s3 <- st_join(s, s2, by = "GEOID")
 s3 <- subset(s3, select=c("pct", "geometry"))
 colnames(s3)
+
+# check data skewness
+hist(s3$pct, main=NULL)
+# check for outliers
+boxplot(s3$pct, horizontal = TRUE)
+# plot variable
+tm_shape(s3) + tm_fill(col="pct", style="quantile", n=5, palette="Reds") +
+  tm_legend(outside=TRUE)
+
+# define neighbor
+nb <- poly2nb(s3, queen=TRUE) # here nb list all ID numbers of neighbors;
+# assign weights to neighbors
+lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
+# compute neighbor average
+inc.lag <- lag.listw(lw, s3$pct)
+# plot polygons vs lags
+plot(inc.lag ~ s3$pct, pch=16, asp=1)
+M1 <- lm(inc.lag ~ s3$pct)
+abline(M1, col="blue")
+# access Moran's coeff
+coef(M1)[2]
+# calculating Moran coeff with one line
+I <- moran(s3$pct, lw, length(nb), Szero(lw))[1]
