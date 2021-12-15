@@ -109,4 +109,11 @@ nc.sids.car.fitted = fitted(nc.sids.car.out)
 nc.sids$fitted.car = nc.sids.car.fitted
 summary(nc.sids.car.out)
 
+#Pure CAR model without regression
+nc.sids.pure.car.out = spautolm(pct~1, data=y, family="CAR", 
+                           listw=lw, zero.policy=TRUE)
+nc.sids.pure.car.fitted = fitted(nc.sids.car.out)
+nc.sids$fitted.pure.car = nc.sids.pure.car.fitted
+summary(nc.sids.pure.car.out)
+
 #If I include too many variables, the model above does not run, so I cannot run the full model I had above^^
