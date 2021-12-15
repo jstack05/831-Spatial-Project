@@ -90,15 +90,23 @@ x.train <- x[coordsIndx, ]
 x.test <- x[-coordsIndx, ]
 max.dist =  0.5 * max(iDist(coords)) 
 
-fit.ml <- likfit(coords = coords, data=y_list, trend = ~x, 
-                 ini.cov.pars = c(var(y_list)), 
-                   cov.model = "exponential", lik.method = "ML", 
-                   control = list(factr = 1e-10, maxit = 500)) 
-summary(fit.ml)
-print(fit.ml)
+nc.sids <- readOGR(system.file("shapes/sids.shp", package="spData")[1], verbose = FALSE) 
+proj4string(nc.sids) <- CRS("+proj=longlat +ellps=clrk66") 
 
+library(maps) 
+library(maptools) 
+map.text("county", "nebraska", fill = FALSE, plot = TRUE, cex = 0.5)
+UScounties = as.data.frame(map("county", fill = TRUE, plot = FALSE))
+county.ID <- sapply(strsplit(UScounties$names, ","), function(x) x[2]) %>% unique()
+USPoly = map2SpatialPolygons(UScounties, IDs=county.ID)
+ne.nb = poly2nb(ne.poly) 
+ne.adj.mat = nb2mat(ne.nb, style="B") 
 
-
+#find neighbors of Lancaster county in Nebraska 
+ne.region.id <- attr(ne.nb, "region.id") 
+lancaster.neighbors.index = ne.nb[[match("lancaster", ne.region.id)]] 
+lancaster.neighbors = rownames(ne.adj.mat[lancaster.neighbors.index,]) 
+lancaster.neighbors
 ```
 
 #Cross-Validation
