@@ -5,6 +5,7 @@ library(acs)
 library(tidyverse)
 library(tmap)
 library(tidycensus)
+library(spatialreg)
 
 
 "https://towardsdatascience.com/spatial-autocorrelation-neighbors-affecting-neighbors-ed4fab8a4aac"
@@ -55,34 +56,51 @@ s2$State <- sub(" ", "", s2$State)
 s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
-s2 <- subset(s2, select=c("GEOID", "pct"))
-#Pare down to make join work in later steps
-s <- subset(s, select=c("GEOID", "geometry"))
+#s2 <- subset(s2, select=c("pct", "GEOID", "geometry"))
 
-#Inner join with geometry data
-s3 <- st_join(s, s2, by = "GEOID")
-s3 <- subset(s3, select=c("pct", "geometry"))
-colnames(s3)
+#Get Linear Predictor Variables
+x <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B19083_001E"), 
+             state = b, geometry = TRUE) %>% tibble()
+
+# remove NA values is any
+x <- na.omit(x)
+
+#reshape to wide format
+#remove columns var1 and var3
+x <- subset(x, select = -c(moe, geometry))
+x <- spread(x, key = variable, value = estimate)
+colnames(x)[3] <- "Median.Income"
+colnames(x)[4] <- "Gini.Index"
+
+#Join Census median/gini data with csv's from around the internet
+y <- inner_join(x,s2, by="GEOID")
+y<-st_as_sf(y)
 
 # check data skewness
-hist(s3$pct, main=NULL)
+hist(y$pct, main=NULL)
 # check for outliers
-boxplot(s3$pct, horizontal = TRUE)
+boxplot(y$pct, horizontal = TRUE)
 # plot variable
-tm_shape(s3) + tm_fill(col="pct", style="quantile", n=5, palette="Reds") +
+tm_shape(y) + tm_fill(col="pct", style="quantile", n=5, palette="Reds") +
   tm_legend(outside=TRUE)
 
 # define neighbor
-nb <- poly2nb(s3, queen=TRUE) # here nb list all ID numbers of neighbors;
+nb <- poly2nb(y, queen=TRUE) # here nb list all ID numbers of neighbors;
 # assign weights to neighbors
 lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
-# compute neighbor average
-inc.lag <- lag.listw(lw, s3$pct)
-# plot polygons vs lags
-plot(inc.lag ~ s3$pct, pch=16, asp=1)
-M1 <- lm(inc.lag ~ s3$pct)
-abline(M1, col="blue")
-# access Moran's coeff
-coef(M1)[2]
-# calculating Moran coeff with one line
-I <- moran(s3$pct, lw, length(nb), Szero(lw))[1]
+
+#Linear predictor of Trump's pct of votes
+#Use 70% of dataset as training set and remaining 30% as testing set
+sample <- sample(c(TRUE, FALSE), nrow(y), replace=TRUE, prob=c(0.7,0.3))
+train <- y[sample, ]
+test <- y[!sample, ]  
+
+
+##CAR model regressing pct on our predictors
+#This code copied directly and adapted from the spatial regression notes
+nc.sids.car.out = spautolm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=y, family="CAR", 
+                           listw=lw, zero.policy=TRUE)
+nc.sids.car.fitted = fitted(nc.sids.car.out)
+nc.sids$fitted.car = nc.sids.car.fitted
+summary(nc.sids.car.out)
+
