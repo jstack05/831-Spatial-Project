@@ -87,7 +87,7 @@ tm_shape(y) + tm_fill(col="pct", style="quantile", n=5, palette="Reds") +
 # define neighbor
 nb <- poly2nb(y, queen=TRUE) # here nb list all ID numbers of neighbors;
 # assign weights to neighbors
-lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
+lw <- nb2listw(nb, style="B", zero.policy=TRUE) # equal weights
 
 #Linear predictor of Trump's pct of votes
 #Use 70% of dataset as training set and remaining 30% as testing set
@@ -95,12 +95,18 @@ sample <- sample(c(TRUE, FALSE), nrow(y), replace=TRUE, prob=c(0.7,0.3))
 train <- y[sample, ]
 test <- y[!sample, ]  
 
+#fit linear model
+model <- lm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*Employed..Sum.of.Last.24.Months.*Unemployed..Sum.of.Last.24.Months., data=train)
+
+#view model summary
+summary(model)
 
 ##CAR model regressing pct on our predictors
 #This code copied directly and adapted from the spatial regression notes
-nc.sids.car.out = spautolm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=y, family="CAR", 
+nc.sids.car.out = spautolm(pct~Unemployed..Sum.of.Last.24.Months., data=y, family="CAR", 
                            listw=lw, zero.policy=TRUE)
 nc.sids.car.fitted = fitted(nc.sids.car.out)
 nc.sids$fitted.car = nc.sids.car.fitted
 summary(nc.sids.car.out)
 
+#If I include too many variables, the model above does not run, so I cannot run the full model I had above^^
