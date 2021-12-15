@@ -29,7 +29,11 @@ set.seed(1234) # because we are randomizing part of the process
 
 # Access the shapefile
 s <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B19083_001E"), 
+<<<<<<< HEAD
              state = b, geometry = TRUE) 
+=======
+             state = b, geometry = TRUE)
+>>>>>>> ec48ce25ebd25142d736b3935f25ef821f7d7898
 
 # remove NA values is any
 s <- na.omit(s)
@@ -38,10 +42,21 @@ backup.s
 x <- backup.s[-seq(2, NROW(backup.s), by = 2),]
 #reshape to wide format
 #remove columns var1 and var3
-s <- subset(s, select = -c(moe, geometry))
-s <- spread(s.1, key = variable, value = estimate)
-colnames(s)[3] <- "Median.Income"
-colnames(s)[4] <- "Gini.Index"
+
+#Just en example dataset
+nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
+
+
+s <- subset(s, select = -c(moe))
+s <- spread(s, key = variable, value = estimate)
+colnames(s)[4] <- "Median.Income"
+colnames(s)[5] <- "Gini.Index"
+
+
+#An attempt
+s$geometry = as_Spatial("sfc_MULTIPOLYGON", cast = FALSE, IDs = counties)
+spd <- sf::as_Spatial(st_geometry(s), cast = FALSE, IDs = county.ID)
+sf::st_as_sf(s, coords = "geometry", crs = 4326)
 
 #work with unemployment data
 ue <- read.csv("Unemployment.csv")
@@ -62,15 +77,20 @@ data$county <- sub(",.*", "", data$county)
 
 # select column to work with
 
-s2 <- s %>% separate(NAME, c("county", "State"), sep = "[,]")
+s2 <- x %>% separate(NAME, c("county", "State"), sep = "[,]")
 s2$State <- sub(" ", "", s2$State) 
 s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
 
+<<<<<<< HEAD
 s3 <- inner_join(s, s2, by = "GEOID")
 s3 <- subset(s3, select=c("pct", "geometry"))
 colnames(s3)
+=======
+counties <- s2$county %>% unique()
+us.poly = map2SpatialPolygons(s2$geometry, IDs=counties) 
+>>>>>>> ec48ce25ebd25142d736b3935f25ef821f7d7898
 
 
 # check data skewness

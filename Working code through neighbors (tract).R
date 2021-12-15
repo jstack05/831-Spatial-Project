@@ -25,6 +25,7 @@ s <- get_acs(key = api, geography = "county", variables = "B19013_001",
 s <- na.omit(s)
 # select column to work with
 s <- subset(s, select=c("estimate"))
+s2<- subset(s2, select=c("pct"))
 
 # check data skewness
 hist(s$estimate, main=NULL)
@@ -32,6 +33,14 @@ hist(s$estimate, main=NULL)
 boxplot(s$estimate, horizontal = TRUE)
 # plot variable
 tm_shape(s) + tm_fill(col="estimate", style="quantile", n=5, palette="Greens") +
+  tm_legend(outside=TRUE)
+
+# check data skewness
+hist(s2$pct, main=NULL)
+# check for outliers
+boxplot(s2$pct, horizontal = TRUE)
+# plot variable
+tm_shape(s2) + tm_fill(col="pct", style="quantile", n=5, palette="Greens") +
   tm_legend(outside=TRUE)
 
 # define neighbor
