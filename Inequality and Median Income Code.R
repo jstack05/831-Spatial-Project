@@ -38,14 +38,19 @@ backup.s
 x <- backup.s[-seq(2, NROW(backup.s), by = 2),]
 #reshape to wide format
 #remove columns var1 and var3
+
+#Just en example dataset
 nc <- sf::st_read(system.file("shape/nc.shp", package="sf"))
 
 
-s$geometry = as_Spatial("sfc_MULTIPOLYGON", cast = FALSE, IDs = counties)
 s <- subset(s, select = -c(moe))
 s <- spread(s, key = variable, value = estimate)
 colnames(s)[4] <- "Median.Income"
 colnames(s)[5] <- "Gini.Index"
+
+
+#An attempt
+s$geometry = as_Spatial("sfc_MULTIPOLYGON", cast = FALSE, IDs = counties)
 spd <- sf::as_Spatial(st_geometry(s), cast = FALSE, IDs = county.ID)
 sf::st_as_sf(s, coords = "geometry", crs = 4326)
 
@@ -68,7 +73,7 @@ data$county <- sub(",.*", "", data$county)
 
 # select column to work with
 
-s2 <- s %>% separate(NAME, c("county", "State"), sep = "[,]")
+s2 <- x %>% separate(NAME, c("county", "State"), sep = "[,]")
 s2$State <- sub(" ", "", s2$State) 
 s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))

@@ -107,6 +107,10 @@ ne.region.id <- attr(ne.nb, "region.id")
 lancaster.neighbors.index = ne.nb[[match("lancaster", ne.region.id)]] 
 lancaster.neighbors = rownames(ne.adj.mat[lancaster.neighbors.index,]) 
 lancaster.neighbors
+
+#More practice code from the notes
+nc.sids <- readOGR(system.file("shapes/sids.shp", package="spData")[1], verbose = FALSE) 
+proj4string(nc.sids) <- CRS("+proj=longlat +ellps=clrk66") 
 ```
 
 #Cross-Validation
