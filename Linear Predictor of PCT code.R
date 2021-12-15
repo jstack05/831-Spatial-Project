@@ -55,11 +55,11 @@ data$Description <- paste(data$county, data$st)
 
 #inner join with presidential results and unemployment results
 data <- inner_join(data, ue, by = "Description")
-data
 data$county <- sub(",.*", "", data$county) 
+data
 
 # Inner join the presidential / unemployment results with Median Income and Gini Index
-s2 <- x %>% separate(NAME, c("county", "State"), sep = "[,]")
+s2 <- s %>% separate(NAME, c("county", "State"), sep = "[,]")
 s2$State <- sub(" ", "", s2$State) 
 s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
