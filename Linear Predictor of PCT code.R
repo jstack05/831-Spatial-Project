@@ -5,6 +5,9 @@ library(acs)
 library(tidyverse)
 library(tmap)
 library(tidycensus)
+library(lmvar)
+
+
 
 
 "https://towardsdatascience.com/spatial-autocorrelation-neighbors-affecting-neighbors-ed4fab8a4aac"
@@ -72,7 +75,10 @@ train <- s2[sample, ]
 test <- s2[!sample, ]  
 
 #fit linear model
-model <- lm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=train)
+model <- lm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=train, x=TRUE, y=TRUE)
+
+cv.model<- cv.lm(model, k=100)
+summary(cv.model)
 
 #view model summary
 summary(model)

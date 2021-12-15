@@ -87,7 +87,26 @@ tm_shape(y) + tm_fill(col="pct", style="quantile", n=5, palette="Reds") +
 # define neighbor
 nb <- poly2nb(y, queen=TRUE) # here nb list all ID numbers of neighbors;
 # assign weights to neighbors
-lw <- nb2listw(nb, style="B", zero.policy=TRUE) # equal weights
+lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
+# compute neighbor average
+inc.lag <- lag.listw(lw, y$pct)
+# plot polygons vs lags
+plot(inc.lag ~ s$estimate, pch=16, asp=1)
+M1 <- lm(inc.lag ~ y$pct)
+abline(M1, col="blue")
+# access Moran's coeff
+coef(M1)[2]
+# calculating Moran coeff with one line
+I <- moran(y$pct, lw, length(nb), Szero(lw))[1]
+
+# hypothesis test with moran.test function
+moran.test(y$pct,lw, zero.policy = TRUE, alternative="greater")
+# using Monte-Carlo simulation
+MC<- moran.mc(y$pct, lw, nsim=999, zero.policy = TRUE, alternative="greater")
+# View results (including p-value)
+MC
+# plot Null distribution
+plot(MC)
 
 #Linear predictor of Trump's pct of votes
 #Use 70% of dataset as training set and remaining 30% as testing set
