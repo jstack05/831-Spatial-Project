@@ -27,32 +27,42 @@ acs.tables.install()
 set.seed(1234) # because we are randomizing part of the process
 
 # Access the shapefile
-s <- get_acs(key = api, geography = "tract", variables = c("B19013_001", "B19083_001E"), 
+s <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B19083_001E"), 
              state = b, geometry = TRUE) %>% tibble()
+
 # remove NA values is any
 s <- na.omit(s)
-s
+
+#reshape to wide format
+#remove columns var1 and var3
+s <- subset(s, select = -c(moe, geometry))
+s <- spread(s.1, key = variable, value = estimate)
+colnames(s)[3] <- "Median.Income"
+colnames(s)[4] <- "Gini.Index"
 
 #work with unemployment data
-colnames(ue)
+ue <- read.csv("Unemployment.csv")
 ue <-ue[(ue['Month']==12 & ue['Year']==2016 & ue['Countyfips']!= 0),]
-colnames(ue)[3] <- 'fips'
-ue <- ue %>% separate(Description, c("county", "State"), sep = "[,]")
+#ue$county <- sub(",.*", "", ue$Description) 
 
 #work with presidential results data
+data <- read.csv("pres16results.csv")
 data= data[(data['cand'] == 'Donald Trump'),]
 data <- na.omit(data)
+data$county <- sub(" County.*", " County,", data$county) 
+data$Description <- paste(data$county, data$st)
 
 #inner join with presidential results
-data <- inner_join(data, ue, by = "county")
+data <- inner_join(data, ue, by = "Description")
 data
 
 # select column to work with
 
-s2 <- s %>% separate(NAME, c("Tract", "County", "State"), sep = "[,]") %>%
-  separate(County, c(NA, "county"), sep = "[ ]") %>%
-  separate(State, c(NA, "State"), sep = "[ ]")
-s2$State <- state.abb[match(s2$State, state.name)]
+s2 <- s %>% separate(NAME, c("County", "State"), sep = "[,]") 
+#%>%
+ # separate(County, c(NA, "county"), sep = "[ ]") %>%
+  #separate(State, c(NA, "State"), sep = "[ ]")
+x <- state.abb[match(s2$State, state.name)]
 data <- data %>% separate(county, c("county", NA), sep = "[ ]")
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
