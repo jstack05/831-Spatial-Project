@@ -29,7 +29,7 @@ set.seed(1234) # because we are randomizing part of the process
 
 # Access the shapefile
 s <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B19083_001E"), 
-             state = b, geometry = TRUE) %>% tibble()
+             state = b, geometry = TRUE) 
 
 # remove NA values is any
 s <- na.omit(s)
@@ -68,7 +68,9 @@ s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
 
-
+s3 <- inner_join(s, s2, by = "GEOID")
+s3 <- subset(s3, select=c("pct", "geometry"))
+colnames(s3)
 
 
 # check data skewness
@@ -80,7 +82,6 @@ tm_shape(s) + tm_fill(col="estimate", style="quantile", n=5, palette="Greens") +
   tm_legend(outside=TRUE)
 
 # define neighbor
-s <- x
 nb <- poly2nb(s, queen=TRUE) # here nb list all ID numbers of neighbors;
 # assign weights to neighbors
 lw <- nb2listw(nb, style="W", zero.policy=TRUE) # equal weights
