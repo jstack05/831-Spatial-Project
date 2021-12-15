@@ -6,6 +6,7 @@ library(tidyverse)
 library(tmap)
 library(tidycensus)
 
+
 "https://towardsdatascience.com/spatial-autocorrelation-neighbors-affecting-neighbors-ed4fab8a4aac"
 "https://www.kaggle.com/stevepalley/2016uspresidentialvotebycounty"
 "https://www.ers.usda.gov/data-products/county-level-data-sets/download-data/"
@@ -55,14 +56,14 @@ data$Description <- paste(data$county, data$st)
 #inner join with presidential results
 data <- inner_join(data, ue, by = "Description")
 data
+data$county <- sub(",.*", "", data$county) 
 
 # select column to work with
-
-s2 <- s %>% separate(NAME, c("County", "State"), sep = "[,]") 
-#%>%
+s2$State <- sub(" ", "", s2$State) 
+s2 <- s %>% separate(NAME, c("County", "State"), sep = "[,]") #%>%
  # separate(County, c(NA, "county"), sep = "[ ]") %>%
   #separate(State, c(NA, "State"), sep = "[ ]")
-x <- state.abb[match(s2$State, state.name)]
+s2$State <- state.abb[match(s2$State, state.name)]
 data <- data %>% separate(county, c("county", NA), sep = "[ ]")
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
