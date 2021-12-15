@@ -104,20 +104,17 @@ MC
 # plot Null distribution
 plot(MC)
 
-#Logistic Model
-#make this example reproducible
-set.seed(1)
-
+#Linear predictor of Trump's pct of votes
 #Use 70% of dataset as training set and remaining 30% as testing set
 sample <- sample(c(TRUE, FALSE), nrow(s2), replace=TRUE, prob=c(0.7,0.3))
 train <- s2[sample, ]
 test <- s2[!sample, ]  
 
-#fit logistic regression model
-model <- glm(pct~estimate+log(moe) + estimate*log(moe), family="binomial", data=train)
+#fit linear model
+model <- lm(pct~Median.Income*Gini.Index*X24.Month.Average.Unemployment.Rate*(Employed..Sum.of.Last.24.Months./Unemployed..Sum.of.Last.24.Months.), data=train)
 
 #disable scientific notation for model summary
-options(scipen=999)
+#options(scipen=999)
 
 #view model summary
 summary(model)
