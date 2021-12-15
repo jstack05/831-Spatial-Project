@@ -33,7 +33,7 @@ s <- get_acs(key = api, geography = "county", variables = c("B19013_001", "B1908
 
 # remove NA values is any
 s <- na.omit(s)
-
+backups <- s
 #reshape to wide format
 #remove columns var1 and var3
 s <- subset(s, select = -c(moe, geometry))
@@ -59,12 +59,10 @@ data
 data$county <- sub(",.*", "", data$county) 
 
 # select column to work with
+
+s2 <- s %>% separate(NAME, c("county", "State"), sep = "[,]")
 s2$State <- sub(" ", "", s2$State) 
-s2 <- s %>% separate(NAME, c("County", "State"), sep = "[,]") #%>%
- # separate(County, c(NA, "county"), sep = "[ ]") %>%
-  #separate(State, c(NA, "State"), sep = "[ ]")
 s2$State <- state.abb[match(s2$State, state.name)]
-data <- data %>% separate(county, c("county", NA), sep = "[ ]")
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
 
