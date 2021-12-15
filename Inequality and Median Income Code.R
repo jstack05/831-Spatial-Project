@@ -83,14 +83,10 @@ s2$State <- state.abb[match(s2$State, state.name)]
 s2 <- inner_join(s2, data, by = c("county", "State" = "st"))
 s2
 
-<<<<<<< HEAD
 s3 <- inner_join(s, s2, by = "GEOID")
 s3 <- subset(s3, select=c("pct", "geometry"))
 colnames(s3)
-=======
-counties <- s2$county %>% unique()
-us.poly = map2SpatialPolygons(s2$geometry, IDs=counties) 
->>>>>>> ec48ce25ebd25142d736b3935f25ef821f7d7898
+
 
 
 # check data skewness
